@@ -57,17 +57,8 @@ object Source {
     rawConfig: Input.RabbitMQ
   ): Stream[F, Record[F]] =
     Stream.resource(client.createConnectionChannel).flatMap { implicit channel =>
-      val exchangeName = ExchangeName(rawConfig.exchangeName)
-      val exchangeConfig =
-        DeclarationExchangeConfig(
-          exchangeName,
-          ExchangeType.Topic,
-          Durable,
-          NonAutoDelete,
-          NonInternal,
-          Map.empty
-        )
-      val queueName = QueueName(rawConfig.queueName)
+      val exchangeName = ExchangeName(rawConfig.queue)
+      val queueName = QueueName(rawConfig.queue)
       val queueConfig =
         DeclarationQueueConfig(
           queueName,
@@ -78,9 +69,8 @@ object Source {
         )
 
       for {
-        _ <- Stream.eval(client.declareExchange(exchangeConfig))
         _ <- Stream.eval(client.declareQueue(queueConfig))
-        _ <- Stream.eval(client.bindQueue(queueName, exchangeName, RoutingKey(rawConfig.routingKey)))
+        _ <- Stream.eval(client.bindQueue(queueName, exchangeName, RoutingKey(rawConfig.queue)))
         stream <- Stream.eval(client.createAutoAckConsumer[Array[Byte]](queueName))
         records <- stream.map(env => Record(env.payload, Sync[F].unit))
       } yield records

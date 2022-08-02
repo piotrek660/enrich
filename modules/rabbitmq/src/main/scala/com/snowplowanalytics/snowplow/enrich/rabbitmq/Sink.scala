@@ -56,9 +56,18 @@ object Sink {
       channel <- client.createConnectionChannel
       publisher <- Resource.eval {
                      implicit val ch = channel
-                     val exchangeName = ExchangeName(rawConfig.exchangeName)
-                     val routingKey = RoutingKey(rawConfig.routingKey)
-                     val queueName = QueueName(rawConfig.queueName)
+                     val exchangeName = ExchangeName(rawConfig.queue)
+                     val exchangeConfig =
+                       DeclarationExchangeConfig(
+                         exchangeName,
+                         ExchangeType.FanOut,
+                         Durable,
+                         NonAutoDelete,
+                         NonInternal,
+                         Map.empty
+                       )
+                     val routingKey = RoutingKey(rawConfig.queue)
+                     val queueName = QueueName(rawConfig.queue)
                      val queueConfig =
                        DeclarationQueueConfig(
                          queueName,
@@ -67,9 +76,9 @@ object Sink {
                          NonAutoDelete,
                          Map.empty
                        )
-                     client.declareExchange(exchangeName, ExchangeType.Topic) *>
-                       client.declareQueue(queueConfig) *>
-                       client.bindQueue(queueName, exchangeName, RoutingKey(rawConfig.routingKey)) *>
+                     client.declareExchange(exchangeConfig) *>
+                       client.declareQueue(queueConfig) *> // TODO: remove
+                       client.bindQueue(queueName, exchangeName, routingKey) *> // TODO: remove
                        client.createPublisher[String](exchangeName, routingKey)
                    }
       sink = (records: List[AttributedData[Array[Byte]]]) =>

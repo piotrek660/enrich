@@ -5,9 +5,7 @@
     "userName": "guest"
     "password": "guest"
     "virtualHost": "/"
-    "exchangeName": "collectorPayloads"
-    "routingKey": "collectorPayloads"
-    "queueName": "collectorPayloads"
+    "queue": "raw"
   }
 
   "output": {
@@ -17,9 +15,7 @@
       "userName": "guest"
       "password": "guest"
       "virtualHost": "/"
-      "exchangeName": "enriched"
-      "routingKey": "enriched"
-      "queueName": "enriched"
+      "queue": "enriched"
     }
 
     "bad": {
@@ -28,9 +24,7 @@
       "userName": "guest"
       "password": "guest"
       "virtualHost": "/"
-      "exchangeName": "badRows"
-      "routingKey": "badRows"
-      "queueName": "badRows"
+      "queue": "bad-1"
     }
   }
 }

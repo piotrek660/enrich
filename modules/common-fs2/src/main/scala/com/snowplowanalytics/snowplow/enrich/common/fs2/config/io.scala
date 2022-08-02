@@ -106,9 +106,7 @@ object io {
       userName: String,
       password: String,
       virtualHost: String,
-      queueName: String,
-      exchangeName: String,
-      routingKey: String
+      queue: String
     ) extends Input
 
     object Kinesis {
@@ -244,9 +242,7 @@ object io {
       userName: String,
       password: String,
       virtualHost: String,
-      exchangeName: String,
-      routingKey: String,
-      queueName: String
+      queue: String
     ) extends Output
 
     case class BackoffPolicy(

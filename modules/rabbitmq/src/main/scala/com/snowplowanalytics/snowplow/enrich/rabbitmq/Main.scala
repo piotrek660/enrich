@@ -51,7 +51,7 @@ object Main extends IOApp.WithContext {
     Run.run[IO, Record[IO]](
       args,
       BuildInfo.name,
-      "hackathon",
+      BuildInfo.version,
       BuildInfo.description,
       executionContext,
       (_, cliConfig) => IO(cliConfig),
