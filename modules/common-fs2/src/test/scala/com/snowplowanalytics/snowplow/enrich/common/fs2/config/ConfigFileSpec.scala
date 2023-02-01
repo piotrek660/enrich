@@ -30,6 +30,8 @@ import org.http4s.Uri
 
 import org.specs2.mutable.Specification
 
+import com.snowplowanalytics.snowplow.enrich.common.fs2.config.io.BackoffPolicy
+
 class ConfigFileSpec extends Specification with CatsIO {
   "parse" should {
     "parse reference example for PubSub" in {
@@ -310,25 +312,45 @@ class ConfigFileSpec extends Specification with CatsIO {
           "collector-payloads-channel",
           "127.0.0.1",
           4161,
-          3000
+          3000,
+          BackoffPolicy(
+            minBackoff = 100.milliseconds,
+            maxBackoff = 10.seconds,
+            maxRetries = Some(10)
+          )
         ),
         io.Outputs(
           io.Output.Nsq(
             "enriched",
             "127.0.0.1",
-            4150
+            4150,
+            BackoffPolicy(
+              minBackoff = 100.milliseconds,
+              maxBackoff = 10.seconds,
+              maxRetries = Some(10)
+            )
           ),
           Some(
             io.Output.Nsq(
               "pii",
               "127.0.0.1",
-              4150
+              4150,
+              BackoffPolicy(
+                minBackoff = 100.milliseconds,
+                maxBackoff = 10.seconds,
+                maxRetries = Some(10)
+              )
             )
           ),
           io.Output.Nsq(
             "bad",
             "127.0.0.1",
-            4150
+            4150,
+            BackoffPolicy(
+              minBackoff = 100.milliseconds,
+              maxBackoff = 10.seconds,
+              maxRetries = Some(10)
+            )
           )
         ),
         io.Concurrency(256, 3),

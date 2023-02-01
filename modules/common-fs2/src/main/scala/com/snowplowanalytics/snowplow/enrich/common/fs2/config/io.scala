@@ -116,8 +116,10 @@ object io {
       channel: String,
       lookupHost: String,
       lookupPort: Int,
-      maxBufferQueueSize: Int
+      maxBufferQueueSize: Int,
+      checkpointBackoff: BackoffPolicy
     ) extends Input
+        with RetryCheckpointing
 
     case class PubSub private (
       subscription: String,
@@ -274,7 +276,8 @@ object io {
     case class Nsq private (
       topic: String,
       nsqdHost: String,
-      nsqdPort: Int
+      nsqdPort: Int,
+      backoffPolicy: BackoffPolicy
     ) extends Output
 
     case class PubSub private (

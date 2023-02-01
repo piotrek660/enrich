@@ -363,8 +363,6 @@ object Dependencies {
     )
 
     val nsqDependencies = Seq(
-      log4j,
-      log4jApi,
       nsqClient
     )
 

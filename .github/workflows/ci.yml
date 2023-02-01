@@ -65,11 +65,7 @@ jobs:
         sbt "project kafka" IntegrationTest/test
         docker-compose -f integration-tests/enrich-kafka/docker-compose.yml down
     - name: Run integration tests for enrich-nsq
-      run: |
-        sbt "project nsq" "docker:publishLocal"
-        docker-compose -f integration-tests/enrich-nsq/docker-compose.yml up -d
-        sbt "project nsq" IntegrationTest/test
-        docker-compose -f integration-tests/enrich-nsq/docker-compose.yml down
+      run: sbt "project nsqDistroless" IntegrationTest/test
     - name: Generate coverage report
       run: sbt coverageReport
     - name: Aggregate coverage data

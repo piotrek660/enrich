@@ -57,34 +57,41 @@ object Source {
   ): Resource[F, NSQConsumer] =
     Resource.make(
       Sync[F].delay {
-        val messageCallback = new NSQMessageCallback {
-          override def message(message: NSQMessage): Unit = {
-            val msgBytes = message.getMessage
-            val enqueue = queue.enqueue1(Right(Record(msgBytes, Sync[F].delay(message.finished()))))
-            ConcurrentEffect[F].toIO(enqueue).unsafeRunSync()
-          }
-        }
-        val errorCallback = new NSQErrorCallback {
-          override def error(e: NSQException): Unit = {
-            val enqueue = queue.enqueue1(Left(e))
-            ConcurrentEffect[F].toIO(enqueue).unsafeRunSync()
-          }
-        }
-        val lookup = new DefaultNSQLookup
-        lookup.addLookupAddress(config.lookupHost, config.lookupPort)
-        val consumer = new NSQConsumer(
-          lookup,
-          config.topic,
-          config.channel,
-          messageCallback,
-          new NSQConfig(),
-          errorCallback
-        )
+        val consumer = createConsumer(queue, config)
         consumer.start()
       }
-    )(service =>
+    )(consumer =>
       blocker
-        .delay(service.shutdown())
-        .handleErrorWith(e => Logger[F].error(s"Cannot terminate NSQ consumer ${e.getMessage}"))
+        .delay(consumer.shutdown())
+        .handleErrorWith(e => Logger[F].error(e)(s"Cannot terminate NSQ consumer"))
     )
+
+  private def createConsumer[F[_]: Sync: ContextShift: ConcurrentEffect](
+    queue: Queue[F, Either[Throwable, Record[F]]],
+    config: Input.Nsq
+  ): NSQConsumer = {
+    val messageCallback = new NSQMessageCallback {
+      override def message(message: NSQMessage): Unit = {
+        val msgBytes = message.getMessage
+        val enqueue = queue.enqueue1(Right(Record(msgBytes, Sync[F].delay(message.finished()))))
+        ConcurrentEffect[F].toIO(enqueue).unsafeRunSync()
+      }
+    }
+    val errorCallback = new NSQErrorCallback {
+      override def error(e: NSQException): Unit = {
+        val enqueue = queue.enqueue1(Left(e))
+        ConcurrentEffect[F].toIO(enqueue).unsafeRunSync()
+      }
+    }
+    val lookup = new DefaultNSQLookup
+    lookup.addLookupAddress(config.lookupHost, config.lookupPort)
+    new NSQConsumer(
+      lookup,
+      config.topic,
+      config.channel,
+      messageCallback,
+      new NSQConfig(),
+      errorCallback
+    )
+  }
 }

@@ -207,23 +207,25 @@ lazy val nsq = project
   .in(file("modules/nsq"))
   .enablePlugins(BuildInfoPlugin, JavaAppPackaging, SnowplowDockerPlugin)
   .settings(nsqBuildSettings)
-  .settings(libraryDependencies ++= nsqDependencies ++ Seq(
-    // integration tests dependencies
-    specs2CEIt,
-    testContainersIt
-  ))
+  .settings(libraryDependencies ++= nsqDependencies)
   .settings(excludeDependencies ++= exclusions)
-  .settings(Defaults.itSettings)
-  .configs(IntegrationTest)
   .settings(addCompilerPlugin(betterMonadicFor))
-  .dependsOn(commonFs2 % "compile->compile;it->it")
+  .dependsOn(commonFs2)
 
 lazy val nsqDistroless = project
   .in(file("modules/distroless/nsq"))
   .enablePlugins(BuildInfoPlugin, JavaAppPackaging, SnowplowDistrolessDockerPlugin)
   .settings(sourceDirectory := (nsq / sourceDirectory).value)
   .settings(nsqDistrolessBuildSettings)
-  .settings(libraryDependencies ++= nsqDependencies)
+  .settings(libraryDependencies ++= nsqDependencies ++ Seq(
+    // integration tests dependencies
+    specs2CEIt,
+    testContainersIt
+  ))
   .settings(excludeDependencies ++= exclusions)
   .settings(addCompilerPlugin(betterMonadicFor))
-  .dependsOn(commonFs2)
+  .dependsOn(commonFs2 % "compile->compile;it->it")
+  .settings(Defaults.itSettings)
+  .configs(IntegrationTest)
+  .settings((IntegrationTest / test) := (IntegrationTest / test).dependsOn(Docker / publishLocal).value)
+  .settings((IntegrationTest / testOnly) := (IntegrationTest / testOnly).dependsOn(Docker / publishLocal).evaluated)
